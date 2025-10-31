@@ -37,7 +37,8 @@
             align-items: center;
             z-index: 10;
             background-color: #000;
-            transition: opacity 2s ease-in-out;
+            transition: opacity 0.5s ease-in-out;
+            cursor: pointer;
         }
 
         .retro-title {
@@ -45,13 +46,30 @@
             font-size: 3rem;
             font-weight: normal;
             color: #8be9fd;
-            /* Helleres Blau für Kontrast (Dracula-Theme) */
             text-shadow:
                 2px 2px 0 #000,
                 4px 4px 0 #222;
             letter-spacing: 2px;
             animation: flicker 2s infinite;
-            image-rendering: pixelated;
+            margin-bottom: 30px;
+        }
+
+        #start-button {
+            margin-top: 30px;
+            font-size: 1.5rem;
+            color: #50fa7b;
+            animation: pulse 1s infinite;
+            cursor: pointer;
+            padding: 20px 40px;
+            border: 3px solid #50fa7b;
+            border-radius: 10px;
+            background: rgba(80, 250, 123, 0.1);
+            transition: all 0.3s;
+        }
+
+        #start-button:hover {
+            background: rgba(80, 250, 123, 0.3);
+            transform: scale(1.05);
         }
 
         #game-container {
@@ -63,7 +81,7 @@
         }
 
         canvas {
-            background-color: #282a36; /* Dunklerer, angenehmerer Hintergrund (Dracula-Theme) */
+            background-color: #282a36;
             display: block;
             margin: 0 auto;
         }
@@ -100,20 +118,10 @@
         }
 
         @keyframes flicker {
-
-            0%,
-            18%,
-            22%,
-            25%,
-            53%,
-            57%,
-            100% {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
                 opacity: 1;
             }
-
-            20%,
-            24%,
-            55% {
+            20%, 24%, 55% {
                 opacity: 0.7;
             }
         }
@@ -122,71 +130,26 @@
             0% {
                 transform: scale(1);
             }
-
             50% {
                 transform: scale(1.05);
             }
-
             100% {
                 transform: scale(1);
             }
         }
 
-        @keyframes wave {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            25% {
-                transform: translateY(-10px);
-            }
-
-            50% {
-                transform: translateY(5px);
-            }
-
-            75% {
-                transform: translateY(-5px);
-            }
-        }
-
-        @keyframes gradientShift {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* Media Query für mobile Geräte */
         @media (max-width: 768px) {
             .retro-title {
-            font-family: 'Roboto', sans-serif;
+                font-family: 'Roboto', sans-serif;
                 font-size: 1.8rem;
             }
-
+            #start-button {
+                font-size: 1.2rem;
+                padding: 15px 30px;
+            }
             #instructions {
                 font-size: 1rem;
             }
-
             #level-display {
                 font-size: 1.2rem;
             }
@@ -200,6 +163,7 @@
 
     <div id="birthday-message">
         <h1 class="retro-title">JAKO-RUN</h1>
+        <div id="start-button">KLICK ZUM STARTEN!</div>
     </div>
 
     <div id="game-container">
@@ -214,6 +178,7 @@
 
     <script>
         const birthdayMessage = document.getElementById('birthday-message');
+        const startButton = document.getElementById('start-button');
         const gameContainer = document.getElementById('game-container');
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -224,6 +189,13 @@
         const bgMusic = document.getElementById('bgMusic');
         const jumpSound = document.getElementById('jumpSound');
 
+        let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
+        let gameStarted = false;
+        const gravity = 0.5;
+        const jumpForce = -20;
+        const airJumpForce = -15;
+        const WINNING_SCORE = 18;
+
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -231,49 +203,37 @@
             fireworksCanvas.height = window.innerHeight;
         }
 
-window.onload = function () {
-    resizeCanvas();
-    // Füge den "Tap to Start"-Hinweis hinzu
-    const startHint = document.createElement('div');
-    startHint.id = 'start-hint';
-    startHint.textContent = 'Tippe oder klicke, um zu starten!';
-    startHint.style.cssText = 'margin-top: 30px; font-size: 1.5rem; color: #50fa7b; animation: pulse 1s infinite; cursor: pointer; padding: 20px; border: 2px solid #50fa7b; border-radius: 10px; background: rgba(80, 250, 123, 0.1);';
-    birthdayMessage.appendChild(startHint);
+        // Initialisiere Canvas beim Laden
+        resizeCanvas();
+        window.addEventListener('resize', function () {
+            resizeCanvas();
+            if (player) {
+                player.y = canvas.height - player.height - 50;
+            }
+        });
 
-    // Füge Event Listener für den ersten Start hinzu - auch auf das birthdayMessage Element
-    birthdayMessage.addEventListener('click', firstStart, { once: true });
-    birthdayMessage.addEventListener('touchstart', firstStart, { once: true });
-    
-    console.log('Game loaded, waiting for start...');
-};
+        // Start-Button Funktionalität
+        function handleStartClick(e) {
+            if (e) e.preventDefault();
+            console.log('Start button clicked!');
+            
+            if (!gameStarted) {
+                gameStarted = true;
+                birthdayMessage.style.opacity = '0';
+                
+                setTimeout(() => {
+                    birthdayMessage.style.display = 'none';
+                    gameContainer.style.display = 'block';
+                    startGame();
+                    bgMusic.play().catch(err => console.log("Audio error:", err));
+                }, 500);
+            }
+        }
 
-        function firstStart() {
-    console.log('Game starting...');
-    
-    // Entferne den Start-Hinweis
-    const startHint = document.getElementById('start-hint');
-    if (startHint) {
-        startHint.remove();
-    }
-
-    // Starte Musik und Spiel SOFORT ohne Verzögerung
-    birthdayMessage.style.opacity = '0';
-    bgMusic.play().catch(e => console.log("Musik konnte nicht automatisch gestartet werden:", e));
-
-    // Entferne die Verzögerung - Spiel startet sofort
-    setTimeout(() => {
-        birthdayMessage.style.display = 'none';
-        gameContainer.style.display = 'block';
-        startGame();
-        console.log('Game started!');
-    }, 500);
-}
-
-        let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
-        const gravity = 0.5;
-        const jumpForce = -20;
-        const airJumpForce = -15; // Kraft für den zweiten Sprung in der Luft
-        const WINNING_SCORE = 18; // 3 Level mit je 6 Hürden = 18
+        // Event Listener für Start
+        startButton.addEventListener('click', handleStartClick);
+        startButton.addEventListener('touchstart', handleStartClick);
+        birthdayMessage.addEventListener('click', handleStartClick);
 
         class Player {
             constructor() {
@@ -283,23 +243,20 @@ window.onload = function () {
                 this.y = canvas.height - this.height - 50;
                 this.velocityY = 0;
                 this.jumping = false;
-                this.color = '#50fa7b'; // Angenehmeres Grün (Dracula-Theme)
+                this.color = '#50fa7b';
                 this.legAngle = 0;
                 this.armAngle = 0;
-                this.canAirJump = true; // Kann in der Luft nochmal springen
+                this.canAirJump = true;
             }
 
             update() {
                 this.velocityY += gravity;
                 this.y += this.velocityY;
 
-                // Nur während des Sprungs Beine und Arme animieren
                 if (this.jumping) {
-                    // Beine und Arme während des Sprungs anpassen
                     this.legAngle = this.velocityY < 0 ? -0.7 : 0.7;
                     this.armAngle = this.velocityY < 0 ? 0.7 : -0.7;
                 } else {
-                    // Neutrale Position am Boden
                     this.legAngle = 0;
                     this.armAngle = 0;
                 }
@@ -308,23 +265,21 @@ window.onload = function () {
                     this.y = canvas.height - this.height - 50;
                     this.jumping = false;
                     this.velocityY = 0;
-                    this.canAirJump = true; // Reset Air-Jump wenn am Boden
+                    this.canAirJump = true;
                 }
             }
 
             jump(isAirJump = false) {
                 if (!this.jumping) {
-                    // Normaler Sprung vom Boden
                     this.velocityY = jumpForce;
                     this.jumping = true;
                     jumpSound.currentTime = 0;
-                    jumpSound.play();
+                    jumpSound.play().catch(e => {});
                 } else if (this.jumping && this.canAirJump && isAirJump) {
-                    // Zweiter Sprung in der Luft (Airwalk)
                     this.velocityY = airJumpForce;
                     this.canAirJump = false;
                     jumpSound.currentTime = 0;
-                    jumpSound.play();
+                    jumpSound.play().catch(e => {});
                 }
             }
 
@@ -332,36 +287,28 @@ window.onload = function () {
                 ctx.strokeStyle = this.color;
                 ctx.lineWidth = 3;
 
-                // Kopf
                 ctx.beginPath();
                 ctx.arc(this.x + this.width / 2, this.y + 15, 15, 0, Math.PI * 2);
                 ctx.stroke();
 
-                // Körper
                 ctx.beginPath();
                 ctx.moveTo(this.x + this.width / 2, this.y + 30);
                 ctx.lineTo(this.x + this.width / 2, this.y + 60);
                 ctx.stroke();
 
-                // Beine mit Knien
                 ctx.beginPath();
-                // Linkes Bein
                 ctx.moveTo(this.x + this.width / 2, this.y + 60);
                 ctx.lineTo(this.x + this.width / 2 - 10 + this.legAngle * 5, this.y + 70);
                 ctx.lineTo(this.x + this.width / 2 - 15 + this.legAngle * 10, this.y + 80);
-                // Rechtes Bein
                 ctx.moveTo(this.x + this.width / 2, this.y + 60);
                 ctx.lineTo(this.x + this.width / 2 + 10 + this.legAngle * 5, this.y + 70);
                 ctx.lineTo(this.x + this.width / 2 + 15 + this.legAngle * 10, this.y + 80);
                 ctx.stroke();
 
-                // Arme mit Ellbogen
                 ctx.beginPath();
-                // Linker Arm
                 ctx.moveTo(this.x + this.width / 2, this.y + 40);
                 ctx.lineTo(this.x + this.width / 2 - 10 + this.armAngle * 5, this.y + 45);
                 ctx.lineTo(this.x + this.width / 2 - 15 + this.armAngle * 10, this.y + 50);
-                // Rechter Arm
                 ctx.moveTo(this.x + this.width / 2, this.y + 40);
                 ctx.lineTo(this.x + this.width / 2 + 10 + this.armAngle * 5, this.y + 45);
                 ctx.lineTo(this.x + this.width / 2 + 15 + this.armAngle * 10, this.y + 50);
@@ -369,7 +316,6 @@ window.onload = function () {
             }
         }
 
-        // Stadt-Skyline für den Hintergrund
         class CitySkyline {
             constructor() {
                 this.buildings = [];
@@ -386,7 +332,6 @@ window.onload = function () {
                     const height = Math.random() * (maxHeight - minHeight) + minHeight;
                     const x = (i * canvas.width / buildingCount) - 20;
 
-                    // Fenster werden EINMAL erzeugt
                     const windows = [];
                     const windowCols = Math.floor(Math.random() * 5) + 3;
                     const windowRows = 3;
@@ -410,12 +355,10 @@ window.onload = function () {
             }
 
             draw() {
-                // Zeichne Gebäude
                 for (const b of this.buildings) {
                     ctx.fillStyle = b.color;
                     ctx.fillRect(b.x, canvas.height - 50 - b.height, b.width, b.height);
 
-                    // Fenster aus gespeicherten Werten
                     ctx.fillStyle = 'rgba(255, 255, 200, 0.3)';
                     const windowWidth = b.width / (b.windowCols + 1);
                     const windowHeight = 10;
@@ -434,7 +377,6 @@ window.onload = function () {
             }
         }
 
-        // Banner-Flugzeug
         class BannerPlane {
             constructor() {
                 this.width = 120;
@@ -448,10 +390,9 @@ window.onload = function () {
             }
 
             update() {
-                // Erscheint zufällig alle 20-30 Sekunden
                 if (!this.active) {
                     this.appearanceTimer++;
-                    if (this.appearanceTimer > 600 + Math.random() * 300) { // 20-30 Sekunden
+                    if (this.appearanceTimer > 600 + Math.random() * 300) {
                         this.active = true;
                         this.x = -this.width;
                         this.appearanceTimer = 0;
@@ -470,32 +411,27 @@ window.onload = function () {
             draw() {
                 if (!this.active) return;
 
-                // Flugzeugkörper
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
                 ctx.roundRect(this.x, this.y, this.width, 20, 8);
                 ctx.fill();
 
-                // Cockpit
                 ctx.fillStyle = '#87CEEB';
                 ctx.beginPath();
                 ctx.ellipse(this.x + this.width - 15, this.y + 10, 12, 8, 0, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Flügel (oben und unten)
                 ctx.fillStyle = '#cccccc';
                 ctx.fillRect(this.x + 20, this.y - 8, 60, 6);
                 ctx.fillRect(this.x + 25, this.y + 22, 50, 6);
 
-                // Propeller-Animation
                 ctx.save();
                 ctx.translate(this.x - 5, this.y + 10);
-                ctx.rotate(this.bannerWave * 10); // nutzt bestehende variable bannerWave für Rotation
+                ctx.rotate(this.bannerWave * 10);
                 ctx.fillStyle = '#999';
                 ctx.fillRect(-1, -12, 2, 24);
                 ctx.restore();
 
-                // Banner mit Seil
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -503,26 +439,24 @@ window.onload = function () {
                 ctx.lineTo(this.x - 30, this.y + 40);
                 ctx.stroke();
 
-                // Banner selbst
                 const bannerY = this.y + 30 + Math.sin(this.bannerWave) * 3;
-                ctx.fillStyle = '#00ff00'; // Grün statt Pink
+                ctx.fillStyle = '#00ff00';
                 ctx.fillRect(this.x - 130, bannerY, 100, 24);
 
-                // Banner-Text
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 14px Balsamiq Sans'; // Moderne Schriftart
+                ctx.font = 'bold 14px Balsamiq Sans';
                 ctx.textAlign = 'center';
-                ctx.fillText('GO JAKO GO!', this.x - 80, bannerY + 16); // Geänderter Text
+                ctx.fillText('GO JAKO GO!', this.x - 80, bannerY + 16);
             }
         }
 
         const OBSTACLE_TYPES = [
-            { name: "JULIA", width: 60, height: 30, color: '#ff5555' }, // Angenehmeres Rot (Dracula-Theme)
-            { name: "MAMA", width: 40, height: 20, color: '#8be9fd' }, // Angenehmeres Blau (Dracula-Theme)
-            { name: "MATILDA", width: 80, height: 40, color: '#f1fa8c', y_offset: 50 }, // Angenehmeres Gelb (Dracula-Theme)
-            { name: "CELIO", width: 70, height: 40, color: '#50fa7b' }, // Angenehmeres Grün (Dracula-Theme)
-            { name: "GAJA", width: 90, height: 50, color: '#bd93f9', y_offset: 80 }, // Angenehmeres Violett (Dracula-Theme)
-            { name: "KATHI", width: 30, height: 80, color: '#ff79c6' } // Angenehmeres Rosa (Dracula-Theme)
+            { name: "JULIA", width: 60, height: 30, color: '#ff5555' },
+            { name: "MAMA", width: 40, height: 20, color: '#8be9fd' },
+            { name: "MATILDA", width: 80, height: 40, color: '#f1fa8c', y_offset: 50 },
+            { name: "CELIO", width: 70, height: 40, color: '#50fa7b' },
+            { name: "GAJA", width: 90, height: 50, color: '#bd93f9', y_offset: 80 },
+            { name: "KATHI", width: 30, height: 80, color: '#ff79c6' }
         ];
 
         class Obstacle {
@@ -546,22 +480,18 @@ window.onload = function () {
                 ctx.fillStyle = this.color;
                 ctx.fillRect(this.x, this.y, this.width, this.height);
 
-                // Namen auf Hindernissen anzeigen
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 12px Balsamiq Sans'; // Moderne Schriftart
+                ctx.font = 'bold 12px Balsamiq Sans';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
-                // Besondere Behandlung für KATHI (stehender Block)
                 if (this.name === "KATHI") {
-                    // Vertikaler Text für KATHI
                     ctx.save();
                     ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
                     ctx.rotate(-Math.PI / 2);
                     ctx.fillText(this.name, 0, 0);
                     ctx.restore();
                 } else {
-                    // Normaler horizontaler Text für andere
                     ctx.fillText(this.name, this.x + this.width / 2, this.y + this.height / 2);
                 }
             }
@@ -597,7 +527,8 @@ window.onload = function () {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-             this.color = '#ff5555'; // Angenehmeres Rot (Dracula-Theme)             this.velocity = {
+                this.color = '#ff5555';
+                this.velocity = {
                     x: (Math.random() - 0.5) * 5,
                     y: (Math.random() - 1) * 5
                 };
@@ -652,6 +583,7 @@ window.onload = function () {
         }
 
         function startGame() {
+            console.log('Starting game...');
             player = new Player();
             obstacles = [];
             bloodSplatterParticles = [];
@@ -664,17 +596,14 @@ window.onload = function () {
             gameRunning = true;
             levelDisplay.textContent = `Level: ${level}`;
 
-            // Erstelle einige Wolken
             for (let i = 0; i < 5; i++) {
                 clouds.push(new Cloud());
             }
 
-            // Hindernis-Erzeugung mit Mindestabstand
             setInterval(() => {
                 if (gameRunning && Math.random() < 0.7) {
-                    // Prüfe, ob genug Platz für ein neues Hindernis ist
                     let canAddObstacle = true;
-                    const minDistance = 300; // Mindestabstand zwischen Hindernissen
+                    const minDistance = 300;
 
                     for (let obstacle of obstacles) {
                         if (obstacle.x > canvas.width - minDistance) {
@@ -694,20 +623,16 @@ window.onload = function () {
 
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             ctx.fillStyle = '#1a1a2e';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Zeichne Stadt-Skyline
             citySkyline.draw();
 
-            // Zeichne und aktualisiere Wolken
             for (let cloud of clouds) {
                 cloud.update();
                 cloud.draw();
             }
 
-            // Zeichne und aktualisiere Banner-Flugzeug
             bannerPlane.update();
             bannerPlane.draw();
 
@@ -735,14 +660,12 @@ window.onload = function () {
                     obstacles[i].passed = true;
                     score++;
 
-                    // Level erhöhen alle 6 Hürden (statt 7)
                     if (score % 6 === 0 && score > 0) {
                         level++;
                         levelDisplay.textContent = `Level: ${level}`;
                         gameSpeed += 1;
                     }
 
-                    // Gewonnen nach 18 Hürden (3 Level mit je 6 Hürden)
                     if (score >= WINNING_SCORE) {
                         showFireworks();
                         return;
@@ -805,7 +728,6 @@ window.onload = function () {
             ctx.font = '24px Arial';
             ctx.fillText('Tap to restart', canvas.width / 2, canvas.height / 2 + 50);
 
-            // Verwende sowohl click als auch touchstart für bessere mobile Unterstützung
             document.addEventListener('click', restartGame, { once: true });
             document.addEventListener('touchstart', restartGame, { once: true });
         }
@@ -889,17 +811,14 @@ window.onload = function () {
                 fireworksCtx.globalAlpha = 1;
                 fireworksCtx.fillStyle = '#fff';
 
-                // Angepasste Schriftgrößen für mobile Geräte
                 const isMobile = window.innerWidth < 768;
-                const mainTextSize = isMobile ? '24px' : '48px'; // Etwas kleiner für Mobilgeräte
-                const subTextSize = isMobile ? '16px' : '36px'; // Etwas kleiner für Mobilgeräte
-                const tapTextSize = isMobile ? '18px' : '24px';
+                const mainTextSize = isMobile ? '24px' : '48px';
+                const subTextSize = isMobile ? '16px' : '36px';
 
-                fireworksCtx.font = mainTextSize + ' Balsamiq Sans';                fireworksCtx.textAlign = 'center';
+                fireworksCtx.font = mainTextSize + ' Balsamiq Sans';
+                fireworksCtx.textAlign = 'center';
                 fireworksCtx.fillText('CONGRATULATIONS JAKOB!', fireworksCanvas.width / 2, isMobile ? 80 : 100);
                 fireworksCtx.font = subTextSize + ' Arial';
-
-                // Geänderter Text
                 fireworksCtx.fillText("Du hast alle Herausforderungen gemeistert!", fireworksCanvas.width / 2, isMobile ? 140 : 160);
                 requestAnimationFrame(animateFireworks);
             }
@@ -910,7 +829,6 @@ window.onload = function () {
                 fireworksCtx.font = '24px Arial';
                 fireworksCtx.fillText('Tippe, um erneut zu spielen', fireworksCanvas.width / 2, fireworksCanvas.height - 50);
 
-                // Verwende sowohl click als auch touchstart für bessere mobile Unterstützung
                 document.addEventListener('click', restartGame, { once: true });
                 document.addEventListener('touchstart', restartGame, { once: true });
             }, 10000);
@@ -927,7 +845,7 @@ window.onload = function () {
 
         // Doppelklick-Funktionalität für Air-Jump
         let lastTapTime = 0;
-        const tapDelay = 300; // Millisekunden für Doppeltap-Erkennung
+        const tapDelay = 300;
 
         document.addEventListener('touchstart', function (e) {
             e.preventDefault();
@@ -935,13 +853,11 @@ window.onload = function () {
             const tapLength = currentTime - lastTapTime;
 
             if (tapLength < tapDelay && tapLength > 0) {
-                // Doppeltap - Air-Jump
-                if (gameRunning && player.jumping) {
-                    player.jump(true); // true = Air-Jump
+                if (gameRunning && player && player.jumping) {
+                    player.jump(true);
                 }
             } else {
-                // Einfacher Tap - Normaler Sprung
-                if (gameRunning) {
+                if (gameRunning && player) {
                     player.jump();
                 }
             }
@@ -953,28 +869,16 @@ window.onload = function () {
             const tapLength = currentTime - lastTapTime;
 
             if (tapLength < tapDelay && tapLength > 0) {
-                // Doppelklick - Air-Jump
-                if (gameRunning && player.jumping) {
-                    player.jump(true); // true = Air-Jump
+                if (gameRunning && player && player.jumping) {
+                    player.jump(true);
                 }
             } else {
-                // Einfacher Klick - Normaler Sprung
-                if (gameRunning) {
+                if (gameRunning && player) {
                     player.jump();
                 }
             }
             lastTapTime = currentTime;
         });
-
-        window.addEventListener('resize', function () {
-            resizeCanvas();
-            if (player) {
-                player.y = canvas.height - player.height - 50;
-            }
-        });
-
-        // Die Musik wird nun beim ersten Klick/Touch in firstStart() gestartet,
-        // daher sind diese zusätzlichen einmaligen Listener nicht mehr nötig.
     </script>
 </body>
 
