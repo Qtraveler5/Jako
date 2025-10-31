@@ -252,15 +252,14 @@
                 startHint.remove();
             }
 
-            // Starte Musik und Spiel nach kurzer Einblendung
+            // Starte Musik und Spiel SOFORT ohne Verzögerung
             birthdayMessage.style.opacity = '0';
             bgMusic.play().catch(e => console.log("Musik konnte nicht automatisch gestartet werden:", e));
 
-            setTimeout(() => {
-                birthdayMessage.style.display = 'none';
-                gameContainer.style.display = 'block';
-                startGame();
-            }, 2000);
+            // Entferne die Verzögerung - Spiel startet sofort
+            birthdayMessage.style.display = 'none';
+            gameContainer.style.display = 'block';
+            startGame();
         }
 
         let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
@@ -889,12 +888,12 @@
                 const subTextSize = isMobile ? '16px' : '36px'; // Etwas kleiner für Mobilgeräte
                 const tapTextSize = isMobile ? '18px' : '24px';
 
-                fireworksCctx.font = mainTextSize + ' Balsamiq Sans';                fireworksCtx.textAlign = 'center';
-                fireworksctx.fillText('CONGRATULATIONS JAKOB!', fireworksCanvas.width / 2, isMobile ? 80 : 100);
+                fireworksCtx.font = mainTextSize + ' Balsamiq Sans';                fireworksCtx.textAlign = 'center';
+                fireworksCtx.fillText('CONGRATULATIONS JAKOB!', fireworksCanvas.width / 2, isMobile ? 80 : 100);
                 fireworksCtx.font = subTextSize + ' Arial';
 
                 // Geänderter Text
-                fireworksCctx.fillText("Du hast alle Herausforderungen gemeistert!", fireworksCanvas.width / 2, isMobile ? 140 : 160);
+                fireworksCtx.fillText("Du hast alle Herausforderungen gemeistert!", fireworksCanvas.width / 2, isMobile ? 140 : 160);
                 requestAnimationFrame(animateFireworks);
             }
 
@@ -902,7 +901,7 @@
 
             setTimeout(() => {
                 fireworksCtx.font = '24px Arial';
-                fireworksctx.fillText('Tippe, um erneut zu spielen', fireworksCanvas.width / 2, fireworksCanvas.height - 50);
+                fireworksCtx.fillText('Tippe, um erneut zu spielen', fireworksCanvas.width / 2, fireworksCanvas.height - 50);
 
                 // Verwende sowohl click als auch touchstart für bessere mobile Unterstützung
                 document.addEventListener('click', restartGame, { once: true });
