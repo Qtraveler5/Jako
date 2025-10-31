@@ -231,36 +231,43 @@
             fireworksCanvas.height = window.innerHeight;
         }
 
-        window.onload = function () {
-            resizeCanvas();
-            // Füge den "Tap to Start"-Hinweis hinzu
-            const startHint = document.createElement('div');
-            startHint.id = 'start-hint';
-            startHint.textContent = 'Tippe oder klicke, um zu starten!';
-            startHint.style.cssText = 'margin-top: 30px; font-size: 1.5rem; color: #50fa7b; animation: pulse 1s infinite;';
-            birthdayMessage.appendChild(startHint);
+window.onload = function () {
+    resizeCanvas();
+    // Füge den "Tap to Start"-Hinweis hinzu
+    const startHint = document.createElement('div');
+    startHint.id = 'start-hint';
+    startHint.textContent = 'Tippe oder klicke, um zu starten!';
+    startHint.style.cssText = 'margin-top: 30px; font-size: 1.5rem; color: #50fa7b; animation: pulse 1s infinite; cursor: pointer; padding: 20px; border: 2px solid #50fa7b; border-radius: 10px; background: rgba(80, 250, 123, 0.1);';
+    birthdayMessage.appendChild(startHint);
 
-            // Füge Event Listener für den ersten Start hinzu
-            document.addEventListener('click', firstStart, { once: true });
-            document.addEventListener('touchstart', firstStart, { once: true });
-        };
+    // Füge Event Listener für den ersten Start hinzu - auch auf das birthdayMessage Element
+    birthdayMessage.addEventListener('click', firstStart, { once: true });
+    birthdayMessage.addEventListener('touchstart', firstStart, { once: true });
+    
+    console.log('Game loaded, waiting for start...');
+};
 
         function firstStart() {
-            // Entferne den Start-Hinweis
-            const startHint = document.getElementById('start-hint');
-            if (startHint) {
-                startHint.remove();
-            }
+    console.log('Game starting...');
+    
+    // Entferne den Start-Hinweis
+    const startHint = document.getElementById('start-hint');
+    if (startHint) {
+        startHint.remove();
+    }
 
-            // Starte Musik und Spiel SOFORT ohne Verzögerung
-            birthdayMessage.style.opacity = '0';
-            bgMusic.play().catch(e => console.log("Musik konnte nicht automatisch gestartet werden:", e));
+    // Starte Musik und Spiel SOFORT ohne Verzögerung
+    birthdayMessage.style.opacity = '0';
+    bgMusic.play().catch(e => console.log("Musik konnte nicht automatisch gestartet werden:", e));
 
-            // Entferne die Verzögerung - Spiel startet sofort
-            birthdayMessage.style.display = 'none';
-            gameContainer.style.display = 'block';
-            startGame();
-        }
+    // Entferne die Verzögerung - Spiel startet sofort
+    setTimeout(() => {
+        birthdayMessage.style.display = 'none';
+        gameContainer.style.display = 'block';
+        startGame();
+        console.log('Game started!');
+    }, 500);
+}
 
         let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
         const gravity = 0.5;
