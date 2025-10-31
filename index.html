@@ -162,7 +162,8 @@
 <body>
     <audio id="bgMusic" loop src="happy_birthday.mp3"></audio>
     <audio id="jumpSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-quick-jump-2534.mp3"></audio>
-
+    <audio id="fireworkSound" src="fireworkSound.mp3"></audio>
+    
     <div id="birthday-message">
         <h1 class="retro-title">JAKO-RUN</h1>
         <div id="start-button">KLICK ZUM STARTEN!</div>
@@ -190,6 +191,7 @@
         const levelDisplay = document.getElementById('level-display');
         const bgMusic = document.getElementById('bgMusic');
         const jumpSound = document.getElementById('jumpSound');
+        const fireworkSound = document.getElementById('fireworkSound');
 
         let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
         let gameStarted = false;
@@ -562,8 +564,8 @@
                 this.y = y;
                 this.color = color;
                 this.velocity = {
-                    x: (Math.random() - 0.5) * 8,
-                    y: (Math.random() - 0.5) * 8
+                    x: (Math.random() - 0.5) * 12,
+                    y: (Math.random() - 0.5) * 12
                 };
                 this.alpha = 1;
                 this.decay = Math.random() * 0.02 + 0.01;
@@ -737,10 +739,12 @@
 
         let floatingPlayer;
         let fireworksParticles = [];
-
+        
         function showFireworks() {
             gameRunning = false;
             bgMusic.pause();
+            fireworkSound.currentTime = 0;
+            fireworkSound.play().catch(e => console.log("Feuerwerk-Audio konnte nicht gestartet werden:", e));
             gameContainer.style.display = 'none';
             fireworksContainer.style.display = 'block';
 
