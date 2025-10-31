@@ -233,18 +233,35 @@
 
         window.onload = function () {
             resizeCanvas();
+            // Füge den "Tap to Start"-Hinweis hinzu
+            const startHint = document.createElement('div');
+            startHint.id = 'start-hint';
+            startHint.textContent = 'Tippe oder klicke, um zu starten!';
+            startHint.style.cssText = 'margin-top: 30px; font-size: 1.5rem; color: #50fa7b; animation: pulse 1s infinite;';
+            birthdayMessage.appendChild(startHint);
+
+            // Füge Event Listener für den ersten Start hinzu
+            document.addEventListener('click', firstStart, { once: true });
+            document.addEventListener('touchstart', firstStart, { once: true });
+        };
+
+        function firstStart() {
+            // Entferne den Start-Hinweis
+            const startHint = document.getElementById('start-hint');
+            if (startHint) {
+                startHint.remove();
+            }
+
+            // Starte Musik und Spiel nach kurzer Einblendung
+            birthdayMessage.style.opacity = '0';
+            bgMusic.play().catch(e => console.log("Musik konnte nicht automatisch gestartet werden:", e));
 
             setTimeout(() => {
-                birthdayMessage.style.opacity = '0';
-                bgMusic.play().catch(e => console.log("Musik konnte nicht automatisch gestartet werden:", e));
-
-                setTimeout(() => {
-                    birthdayMessage.style.display = 'none';
-                    gameContainer.style.display = 'block';
-                    startGame();
-                }, 2000);
-            }, 3000);
-        };
+                birthdayMessage.style.display = 'none';
+                gameContainer.style.display = 'block';
+                startGame();
+            }, 2000);
+        }
 
         let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
         const gravity = 0.5;
@@ -950,12 +967,8 @@
             }
         });
 
-        document.addEventListener('click', function () {
-            bgMusic.play().catch(e => console.log("Musik-Start fehlgeschlagen:", e));
-        }, { once: true });
-        document.addEventListener('touchstart', function () {
-            bgMusic.play().catch(e => console.log("Musik-Start fehlgeschlagen:", e));
-        }, { once: true });
+        // Die Musik wird nun beim ersten Klick/Touch in firstStart() gestartet,
+        // daher sind diese zusätzlichen einmaligen Listener nicht mehr nötig.
     </script>
 </body>
 
