@@ -356,11 +356,10 @@
                 
                 // VARIABLEN FÜR NATÜRLICHE BEWEGUNG
                 this.helicopterBobPhase = 0; // Phase der Auf-ABwärtsbewegung
-                this.helicopterBobSpeed = 0.05; // Geschwindigkeit der Bewegung
-                this.helicopterBobAmount = 8; // Stärke der Bewegung (Pixel)
+                this.helicopterBobSpeed = 0.03; // Geschwindigkeit der Bewegung (langsamer)
+                this.helicopterBobAmount = 3; // Stärke der Bewegung (kleiner: 3 statt 8 Pixel)
                 this.targetHelicopterY = canvas.height / 2 - 50; // Zielhöhe in der Mitte
                 this.helicopterLiftSpeed = 0.1; // Geschwindigkeit zum Erreichen der Zielhöhe
-            }
 
             update() {
                 // Helicopter-Modus
