@@ -131,9 +131,9 @@
 
         #firework-button {
             position: absolute;
-            bottom: 100px;
+            bottom: 50px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%, 80px);
             font-size: 1.5rem;
             color: #ff0000;
             animation: pulse 1.5s infinite;
@@ -1046,7 +1046,7 @@
             let fireworksParticles = [];
             let floatingPlayer = new Player();
             floatingPlayer.x = fireworksCanvas.width / 2 - floatingPlayer.width / 2;
-            floatingPlayer.y = fireworksCanvas.height 2 + 50; 
+            floatingPlayer.y = fireworksCanvas.height / 2 + 50; 
             floatingPlayer.velocityY = 0; // Steht still
             floatingPlayer.jumping = false;
             
