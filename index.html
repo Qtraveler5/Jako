@@ -219,6 +219,7 @@
         
         let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
         let gameStarted = false;
+        let helicopterActive = false;
         const gravity = 0.5;
         const jumpForce = -20;
         const airJumpForce = -15;
@@ -360,6 +361,7 @@
                 this.helicopterBobAmount = 3; // Stärke der Bewegung (kleiner: 3 statt 8 Pixel)
                 this.targetHelicopterY = canvas.height / 2 - 50; // Zielhöhe in der Mitte
                 this.helicopterLiftSpeed = 0.1; // Geschwindigkeit zum Erreichen der Zielhöhe
+            }
 
             update() {
                 // Helicopter-Modus
@@ -988,24 +990,25 @@
             document.addEventListener('touchstart', restartGame, { once: true });
         }
 
-            function showFireworks() {
-                gameRunning = false;
-                bgMusic.pause();
-            
-                // Stoppe und reset alle Audio-Elemente
-                helicopterSound.pause();
-                helicopterSound.currentTime = 0;
-            
-                gameContainer.style.display = 'none';
-                fireworksContainer.style.display = 'block';
-            
-                // Verzögerung für Mobile Audio Context
-                setTimeout(() => {
-                    fireworkSound.volume = 0.8;
-                    playAudio(fireworkSound);
-                }, 100);
+        function showFireworks() {
+            gameRunning = false;
+            bgMusic.pause();
+        
+            // Stoppe und reset alle Audio-Elemente
+            helicopterSound.pause();
+            helicopterSound.currentTime = 0;
+        
+            gameContainer.style.display = 'none';
+            fireworksContainer.style.display = 'block';
+        
+            // Verzögerung für Mobile Audio Context
+            setTimeout(() => {
+                fireworkSound.volume = 0.8;
+                playAudio(fireworkSound);
+            }, 100);
 
-            floatingPlayer = new Player();
+            let fireworksParticles = [];
+            let floatingPlayer = new Player();
             floatingPlayer.x = fireworksCanvas.width / 2 - floatingPlayer.width / 2;
             floatingPlayer.y = fireworksCanvas.height / 2 + 150;
             floatingPlayer.velocityY = -3;
@@ -1102,7 +1105,7 @@
             gameContainer.style.display = 'block';
             fireworksContainer.style.display = 'none';
             fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
-            fireworksParticles = [];
+            let fireworksParticles = [];
             fireworkSound.pause();
             helicopterSound.pause();
             helicopterSound.currentTime = 0;
@@ -1162,7 +1165,6 @@
         });
 
         // Funkturm-Kugel Touch-Handler - verbessert für Mobile
-        let helicopterActive = false;
         
         function handleHelicopterInput(start, x, y) {
             if (!gameRunning || !citySkyline || !player) return;
