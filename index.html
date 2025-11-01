@@ -163,6 +163,7 @@
     <audio id="jumpSound" src="sproing.m4a"></audio>
     <audio id="fireworkSound" src="fireworkSound.mp3"></audio>
     <audio id="failSound" src="fail.mp3" preload="auto"></audio>
+    <audio id="helicopterSound" loop src="helicopter.mp3"></audio>
     
     <div id="birthday-message">
         <h1 class="retro-title">JAKO-RUN</h1>
@@ -193,6 +194,7 @@
         const jumpSound = document.getElementById('jumpSound');
         const fireworkSound = document.getElementById('fireworkSound');
         const failSound = document.getElementById('failSound');
+        const helicopterSound = document.getElementById('helicopterSound');
         
         let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
         let gameStarted = false;
@@ -252,25 +254,35 @@
                 this.legAngle = 0;
                 this.armAngle = 0;
                 this.canAirJump = true;
+                this.helicopterMode = false;
+                this.propellerAngle = 0;
             }
 
             update() {
-                this.velocityY += gravity;
-                this.y += this.velocityY;
-
-                if (this.jumping) {
-                    this.legAngle = this.velocityY < 0 ? -0.7 : 0.7;
-                    this.armAngle = this.velocityY < 0 ? 0.7 : -0.7;
+                // Helicopter-Modus
+                if (this.helicopterMode) {
+                    this.y -= 3; // Schwebt nach oben
+                    this.propellerAngle += 0.5; // Propeller drehen
+                    if (this.y < 100) this.y = 100; // Nicht zu hoch
                 } else {
-                    this.legAngle = 0;
-                    this.armAngle = 0;
-                }
+                    // Normaler Modus
+                    this.velocityY += gravity;
+                    this.y += this.velocityY;
 
-                if (this.y > canvas.height - this.height - 50) {
-                    this.y = canvas.height - this.height - 50;
-                    this.jumping = false;
-                    this.velocityY = 0;
-                    this.canAirJump = true;
+                    if (this.jumping) {
+                        this.legAngle = this.velocityY < 0 ? -0.7 : 0.7;
+                        this.armAngle = this.velocityY < 0 ? 0.7 : -0.7;
+                    } else {
+                        this.legAngle = 0;
+                        this.armAngle = 0;
+                    }
+
+                    if (this.y > canvas.height - this.height - 50) {
+                        this.y = canvas.height - this.height - 50;
+                        this.jumping = false;
+                        this.velocityY = 0;
+                        this.canAirJump = true;
+                    }
                 }
             }
 
@@ -292,15 +304,36 @@
                 ctx.strokeStyle = this.color;
                 ctx.lineWidth = 3;
 
+                // Propeller (nur im Helicopter-Modus)
+                if (this.helicopterMode) {
+                    ctx.save();
+                    ctx.translate(this.x + this.width / 2, this.y + 5);
+                    ctx.rotate(this.propellerAngle);
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(-20, 0);
+                    ctx.lineTo(20, 0);
+                    ctx.moveTo(0, -20);
+                    ctx.lineTo(0, 20);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Kopf
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.arc(this.x + this.width / 2, this.y + 15, 15, 0, Math.PI * 2);
                 ctx.stroke();
 
+                // Körper
                 ctx.beginPath();
                 ctx.moveTo(this.x + this.width / 2, this.y + 30);
                 ctx.lineTo(this.x + this.width / 2, this.y + 60);
                 ctx.stroke();
 
+                // Beine
                 ctx.beginPath();
                 ctx.moveTo(this.x + this.width / 2, this.y + 60);
                 ctx.lineTo(this.x + this.width / 2 - 10 + this.legAngle * 5, this.y + 70);
@@ -310,6 +343,7 @@
                 ctx.lineTo(this.x + this.width / 2 + 15 + this.legAngle * 10, this.y + 80);
                 ctx.stroke();
 
+                // Arme
                 ctx.beginPath();
                 ctx.moveTo(this.x + this.width / 2, this.y + 40);
                 ctx.lineTo(this.x + this.width / 2 - 10 + this.armAngle * 5, this.y + 45);
@@ -357,9 +391,22 @@
                         windows
                     });
                 }
+                
+                // Funkturm (Berliner TV-Turm Stil)
+                this.tower = {
+                    x: canvas.width - 150,
+                    baseWidth: 40,
+                    baseHeight: 100,
+                    shaftWidth: 15,
+                    shaftHeight: 200,
+                    sphereRadius: 25,
+                    antennaHeight: 80,
+                    color: '#888888'
+                };
             }
 
             draw() {
+                // Zeichne Gebäude
                 for (const b of this.buildings) {
                     ctx.fillStyle = b.color;
                     ctx.fillRect(b.x, canvas.height - 50 - b.height, b.width, b.height);
@@ -379,6 +426,58 @@
                         }
                     }
                 }
+                
+                // Zeichne Funkturm
+                const t = this.tower;
+                const groundY = canvas.height - 50;
+                const baseY = groundY - t.baseHeight;
+                const shaftY = baseY - t.shaftHeight;
+                const sphereY = shaftY - t.sphereRadius;
+                const antennaY = sphereY - t.sphereRadius - t.antennaHeight;
+                
+                // Basis (breites Fundament)
+                ctx.fillStyle = t.color;
+                ctx.fillRect(t.x - t.baseWidth/2, baseY, t.baseWidth, t.baseHeight);
+                
+                // Schaft (dünner Turm)
+                ctx.fillStyle = '#999999';
+                ctx.fillRect(t.x - t.shaftWidth/2, shaftY, t.shaftWidth, t.shaftHeight);
+                
+                // Kugel (Alexanderplatz-Stil)
+                ctx.fillStyle = '#c0c0c0';
+                ctx.beginPath();
+                ctx.arc(t.x, sphereY, t.sphereRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Glanz auf Kugel
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.beginPath();
+                ctx.arc(t.x - 8, sphereY - 8, 10, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Antenne oben
+                ctx.strokeStyle = '#666666';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(t.x, sphereY - t.sphereRadius);
+                ctx.lineTo(t.x, antennaY);
+                ctx.stroke();
+                
+                // Rote Warnlichter auf Antenne
+                ctx.fillStyle = '#ff0000';
+                ctx.beginPath();
+                ctx.arc(t.x, antennaY + 20, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(t.x, antennaY + 50, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Speichere Kugel-Position für Klick-Erkennung
+                this.sphereHitbox = {
+                    x: t.x,
+                    y: sphereY,
+                    radius: t.sphereRadius
+                };
             }
         }
 
@@ -892,6 +991,64 @@
                 }
             }
             lastTapTime = currentTime;
+        });
+
+        // Funkturm-Kugel Touch-Handler
+        let helicopterActive = false;
+        
+        canvas.addEventListener('touchstart', function(e) {
+            if (!gameRunning || !citySkyline) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            const sphere = citySkyline.sphereHitbox;
+            const dist = Math.sqrt((x - sphere.x) ** 2 + (y - sphere.y) ** 2);
+            
+            if (dist < sphere.radius) {
+                e.preventDefault();
+                helicopterActive = true;
+                player.helicopterMode = true;
+                helicopterSound.play().catch(e => {});
+            }
+        });
+        
+        canvas.addEventListener('touchend', function(e) {
+            if (helicopterActive) {
+                e.preventDefault();
+                helicopterActive = false;
+                player.helicopterMode = false;
+                helicopterSound.pause();
+                helicopterSound.currentTime = 0;
+            }
+        });
+        
+        canvas.addEventListener('mousedown', function(e) {
+            if (!gameRunning || !citySkyline) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const sphere = citySkyline.sphereHitbox;
+            const dist = Math.sqrt((x - sphere.x) ** 2 + (y - sphere.y) ** 2);
+            
+            if (dist < sphere.radius) {
+                helicopterActive = true;
+                player.helicopterMode = true;
+                helicopterSound.play().catch(e => {});
+            }
+        });
+        
+        canvas.addEventListener('mouseup', function() {
+            if (helicopterActive) {
+                helicopterActive = false;
+                player.helicopterMode = false;
+                helicopterSound.pause();
+                helicopterSound.currentTime = 0;
+            }
         });
     </script>
 </body>
