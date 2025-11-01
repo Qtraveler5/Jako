@@ -260,11 +260,11 @@
 
             update() {
                 // Helicopter-Modus
-                if (this.helicopterMode) {
-                    this.y -= 3; // Schwebt nach oben
-                    this.propellerAngle += 0.5; // Propeller drehen
-                    if (this.y < 100) this.y = 100; // Nicht zu hoch
-                } else {
+                    if (this.helicopterMode) {
+                        this.y -= 3; // Schwebt nach oben
+                        this.propellerAngle += 0.5; // Propeller drehen
+                        if (this.y < canvas.height / 2 - 50) this.y = canvas.height / 2 - 50; // Mittige Höhe
+                    } else {
                     // Normaler Modus
                     this.velocityY += gravity;
                     this.y += this.velocityY;
