@@ -305,30 +305,27 @@
                 ctx.lineWidth = 3;
 
                 // Propeller (nur im Helicopter-Modus)
+                // Propeller (nur im Helicopter-Modus) - mit leichter Aufsicht (20 Grad)
                 if (this.helicopterMode) {
-                    ctx.save();
-                    ctx.translate(this.x + this.width / 2, this.y + 5);
-                    ctx.rotate(this.propellerAngle);
-                    
-                    // Rotorblätter in Seitenansicht (25 Grad)
-                    ctx.strokeStyle = this.color;
-                    ctx.lineWidth = 3;
-                    ctx.lineCap = 'round';
-                    
-                    // Hauptrotorblatt (in Seitenansicht)
-                    ctx.beginPath();
-                    ctx.moveTo(-25, 0);
-                    ctx.lineTo(25, 0);
-                    ctx.stroke();
-                    
-                    // Kleiner Punkt in der Mitte (Achse)
-                    ctx.fillStyle = this.color;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.restore();
-                }
+                ctx.save();
+                // Position über dem Kopf mit leichter Aufsicht
+                ctx.translate(this.x + this.width / 2, this.y - 5);
+    
+                // Leichte Drehung für Aufsicht-Perspektive (20 Grad)
+                ctx.rotate(20 * Math.PI / 180);
+    
+                // Rotorblätter in Aufsicht
+                ctx.strokeStyle = this.color;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+    
+                // Hauptrotorblatt (horizontal)
+                ctx.beginPath();
+                ctx.moveTo(-25, 0);
+                ctx.lineTo(25, 0);
+                ctx.stroke();
+                ctx.restore();
+            }
 
                 // Kopf
                 ctx.strokeStyle = this.color;
