@@ -913,7 +913,11 @@
                     }
 
                     if (score >= WINNING_SCORE) {
-                        // Stoppe Helicopter-Sound vor dem Start des Feuerwerks
+                        // Wichtig: Helicopter-Modus beenden und Audio stoppen
+                        if (player.helicopterMode) {
+                            player.helicopterMode = false;
+                            helicopterActive = false;
+                        }
                         helicopterSound.pause();
                         helicopterSound.currentTime = 0;
                         showFireworks();
@@ -985,19 +989,22 @@
             document.addEventListener('touchstart', restartGame, { once: true });
         }
 
-        let floatingPlayer;
-        let fireworksParticles = [];
-        
-        function showFireworks() {
-            gameRunning = false;
-            bgMusic.pause();
+            function showFireworks() {
+                gameRunning = false;
+                bgMusic.pause();
             
-            // Feuerwerk-Sound mit spezieller Mobile-Handling
-            fireworkSound.volume = 0.8;
-            playAudio(fireworkSound);
+                // Stoppe und reset alle Audio-Elemente
+                helicopterSound.pause();
+                helicopterSound.currentTime = 0;
             
-            gameContainer.style.display = 'none';
-            fireworksContainer.style.display = 'block';
+                gameContainer.style.display = 'none';
+                fireworksContainer.style.display = 'block';
+            
+                // Verzögerung für Mobile Audio Context
+                setTimeout(() => {
+                    fireworkSound.volume = 0.8;
+                    playAudio(fireworkSound);
+                }, 100);
 
             floatingPlayer = new Player();
             floatingPlayer.x = fireworksCanvas.width / 2 - floatingPlayer.width / 2;
