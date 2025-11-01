@@ -946,7 +946,12 @@
             player.draw();
 
             for (let i = obstacles.length - 1; i >= 0; i--) {
-                obstacles[i].update();
+                // Im Helicopter-Modus sind Hindernisse 6x schneller
+                if (player.helicopterMode) {
+                    obstacles[i].x -= gameSpeed * 6;
+                } else {
+                    obstacles[i].update();
+                }
                 obstacles[i].draw();
 
                 if (detectCollision(player, obstacles[i])) {
