@@ -24,6 +24,7 @@
             justify-content: center;
             align-items: center;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #birthday-message {
@@ -66,6 +67,10 @@
             border-radius: 10px;
             background: rgba(80, 250, 123, 0.1);
             transition: all 0.3s;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         #start-button:hover {
@@ -85,6 +90,12 @@
             background-color: #282a36;
             display: block;
             margin: 0 auto;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         #instructions {
@@ -159,11 +170,21 @@
 </head>
 
 <body>
-    <audio id="bgMusic" loop src="happy_birthday.mp3"></audio>
-    <audio id="jumpSound" src="sproing.m4a"></audio>
-    <audio id="fireworkSound" src="fireworkSound.mp3"></audio>
-    <audio id="failSound" src="fail.mp3" preload="auto"></audio>
-    <audio id="helicopterSound" loop src="helicopter1.mp3"></audio>
+    <audio id="bgMusic" loop preload="auto">
+        <source src="happy_birthday.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="jumpSound" preload="auto">
+        <source src="sproing.m4a" type="audio/mp4">
+    </audio>
+    <audio id="fireworkSound" preload="auto">
+        <source src="fireworkSound.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="failSound" preload="auto">
+        <source src="fail.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="helicopterSound" loop preload="auto">
+        <source src="helicopter1.mp3" type="audio/mpeg">
+    </audio>
     
     <div id="birthday-message">
         <h1 class="retro-title">JAKO-RUN</h1>
@@ -203,6 +224,63 @@
         const airJumpForce = -15;
         const WINNING_SCORE = 18;
 
+        // Audio-Kontext für Mobile Devices
+        let audioContext;
+        let audioInitialized = false;
+
+        function initAudio() {
+            if (audioInitialized) return;
+            
+            // Erstelle Audio Context für Mobile Geräte
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Erstelle dummy source um Audio zu entsperren
+                const source = audioContext.createBufferSource();
+                source.buffer = audioContext.createBuffer(1, 1, 22050);
+                source.connect(audioContext.destination);
+                source.start(0);
+                
+                // Setze Volume auf 0 für den dummy sound
+                source.gainValue = 0;
+                
+                audioInitialized = true;
+                console.log("Audio context initialized");
+            } catch (e) {
+                console.log("Audio context not supported:", e);
+            }
+        }
+
+        function playAudio(audioElement) {
+            if (!audioInitialized) {
+                initAudio();
+            }
+            
+            // Für Mobile Devices: Audio neu laden und abspielen
+            if (isMobileDevice()) {
+                audioElement.currentTime = 0;
+                const playPromise = audioElement.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Audio play failed, trying again:", error);
+                        // Zweiter Versuch mit Timeout
+                        setTimeout(() => {
+                            audioElement.play().catch(e => console.log("Second attempt failed:", e));
+                        }, 100);
+                    });
+                }
+            } else {
+                audioElement.currentTime = 0;
+                audioElement.play().catch(e => console.log("Desktop audio error:", e));
+            }
+        }
+
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -216,6 +294,7 @@
             resizeCanvas();
             if (player) {
                 player.y = canvas.height - player.height - 50;
+                player.targetHelicopterY = canvas.height / 2 - 50;
             }
         });
 
@@ -228,19 +307,37 @@
                 gameStarted = true;
                 birthdayMessage.style.opacity = '0';
                 
+                // Audio initialisieren beim ersten Klick
+                initAudio();
+                
                 setTimeout(() => {
                     birthdayMessage.style.display = 'none';
                     gameContainer.style.display = 'block';
                     startGame();
-                    bgMusic.play().catch(err => console.log("Audio error:", err));
+                    
+                    // Musik mit User Interaction starten
+                    bgMusic.volume = 0.7;
+                    const playPromise = bgMusic.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => {
+                            console.log("Background music play failed:", error);
+                        });
+                    }
                 }, 500);
             }
         }
 
         // Event Listener für Start
         startButton.addEventListener('click', handleStartClick);
-        startButton.addEventListener('touchstart', handleStartClick);
+        startButton.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            handleStartClick(e);
+        }, {passive: false});
         birthdayMessage.addEventListener('click', handleStartClick);
+        birthdayMessage.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            handleStartClick(e);
+        }, {passive: false});
 
         class Player {
             constructor() {
@@ -257,19 +354,21 @@
                 this.helicopterMode = false;
                 this.propellerAngle = 0;
                 
-                // NEUE VARIABLEN FÜR NATÜRLICHE BEWEGUNG
+                // VARIABLEN FÜR NATÜRLICHE BEWEGUNG
                 this.helicopterBobPhase = 0; // Phase der Auf-ABwärtsbewegung
                 this.helicopterBobSpeed = 0.05; // Geschwindigkeit der Bewegung
                 this.helicopterBobAmount = 8; // Stärke der Bewegung (Pixel)
                 this.targetHelicopterY = canvas.height / 2 - 50; // Zielhöhe in der Mitte
+                this.helicopterLiftSpeed = 0.1; // Geschwindigkeit zum Erreichen der Zielhöhe
             }
 
             update() {
                 // Helicopter-Modus
                 if (this.helicopterMode) {
                     // Sanfte Bewegung zur Zielhöhe
-                    if (Math.abs(this.y - this.targetHelicopterY) > 1) {
-                        this.y += (this.targetHelicopterY - this.y) * 0.1;
+                    const diffY = this.targetHelicopterY - this.y;
+                    if (Math.abs(diffY) > 1) {
+                        this.y += diffY * this.helicopterLiftSpeed;
                     }
                     
                     // Natürliche Auf-ABwärtsbewegung
@@ -281,7 +380,7 @@
                     this.propellerAngle += 0.5;
                     
                 } else {
-                    // Normaler Modus (bestehender Code)
+                    // Normaler Modus
                     this.velocityY += gravity;
                     this.y += this.velocityY;
 
@@ -306,13 +405,11 @@
                 if (!this.jumping) {
                     this.velocityY = jumpForce;
                     this.jumping = true;
-                    jumpSound.currentTime = 0;
-                    jumpSound.play().catch(e => {});
+                    playAudio(jumpSound);
                 } else if (this.jumping && this.canAirJump && isAirJump) {
                     this.velocityY = airJumpForce;
                     this.canAirJump = false;
-                    jumpSound.currentTime = 0;
-                    jumpSound.play().catch(e => {});
+                    playAudio(jumpSound);
                 }
             }
 
@@ -329,18 +426,18 @@
                     ctx.rotate(this.propellerAngle);
     
                     // Seitenansicht 30 Grad - Ellipsen statt Linien für 3D-Effekt
-                    ctx.strokeStyle = this.color; // Gleiche Farbe wie Männchen (#50fa7b)
+                    ctx.strokeStyle = this.color;
                     ctx.lineWidth = 3;
                     ctx.lineCap = 'round';
     
                     // Propellerblatt 1 (vorne) - als schmale Ellipse
                     ctx.beginPath();
-                    ctx.ellipse(0, 0, 22, 3, 0, 0, Math.PI * 2); // Horizontal, dünn
+                    ctx.ellipse(0, 0, 22, 3, 0, 0, Math.PI * 2);
                     ctx.stroke();
     
                     // Propellerblatt 2 (hinten) - als noch schmalere Ellipse (Perspektive)
                     ctx.beginPath();
-                    ctx.ellipse(0, 0, 22, 1.5, Math.PI / 2, 0, Math.PI * 2); // Vertikal, noch dünner
+                    ctx.ellipse(0, 0, 22, 1.5, Math.PI / 2, 0, Math.PI * 2);
                     ctx.stroke();
     
                     // Zentrale Achse
@@ -361,7 +458,6 @@
 
                 // Großer Smiley im Helicopter-Modus
                 if (this.helicopterMode) {
-                    
                     // Mund (lächelnd)
                     ctx.beginPath();
                     ctx.arc(this.x + this.width / 2, this.y + 18, 8, 0.1 * Math.PI, 0.9 * Math.PI);
@@ -433,9 +529,9 @@
                     });
                 }
                 
-                // Funkturm (Berliner TV-Turm Stil) - näher am Rand, 20% größer
+                // Funkturm (Berliner TV-Turm Stil)
                 this.tower = {
-                    x: canvas.width - 50, // Näher am rechten Rand
+                    x: canvas.width - 50,
                     shaftWidth: 12,
                     shaftHeight: 160,
                     sphereRadius: 20,
@@ -475,7 +571,7 @@
                 const sphereY = shaftY - t.sphereRadius;
                 const antennaY = sphereY - t.sphereRadius - t.antennaHeight;
                 
-                // Schaft (dünner Turm) - KEIN Fundament mehr
+                // Schaft (dünner Turm)
                 ctx.fillStyle = '#999999';
                 ctx.fillRect(t.x - t.shaftWidth/2, shaftY, t.shaftWidth, t.shaftHeight);
                 
@@ -869,10 +965,8 @@
             helicopterSound.pause();
             helicopterSound.currentTime = 0;
 
-            failSound.currentTime = 0;
-            failSound.play().catch(e => {
-                console.log("Fail sound error:", e);
-            });
+            playAudio(failSound);
+            
             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -897,8 +991,11 @@
         function showFireworks() {
             gameRunning = false;
             bgMusic.pause();
-            fireworkSound.currentTime = 0;
-            fireworkSound.play().catch(e => console.log("Feuerwerk-Audio konnte nicht gestartet werden:", e));
+            
+            // Feuerwerk-Sound mit spezieller Mobile-Handling
+            fireworkSound.volume = 0.8;
+            playAudio(fireworkSound);
+            
             gameContainer.style.display = 'none';
             fireworksContainer.style.display = 'block';
 
@@ -1005,103 +1102,140 @@
             helicopterSound.currentTime = 0;
             
             startGame();
-            bgMusic.play().catch(e => console.log("Musik konnte nicht gestartet werden:", e));
+            
+            // Musik neu starten
+            bgMusic.currentTime = 0;
+            const playPromise = bgMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Background music restart failed:", error);
+                });
+            }
         }
 
         // Doppelklick-Funktionalität für Air-Jump
         let lastTapTime = 0;
         const tapDelay = 300;
 
+        // Verbesserte Touch- und Mouse-Event-Handling
+        function handleGameInput(isDoubleTap = false) {
+            if (!gameRunning || !player) return;
+            
+            if (isDoubleTap && player.jumping) {
+                player.jump(true);
+            } else {
+                player.jump();
+            }
+        }
+
+        // Touch Events
         document.addEventListener('touchstart', function (e) {
             e.preventDefault();
             const currentTime = new Date().getTime();
             const tapLength = currentTime - lastTapTime;
 
             if (tapLength < tapDelay && tapLength > 0) {
-                if (gameRunning && player && player.jumping) {
-                    player.jump(true);
-                }
+                handleGameInput(true);
             } else {
-                if (gameRunning && player) {
-                    player.jump();
-                }
+                handleGameInput(false);
             }
             lastTapTime = currentTime;
         }, { passive: false });
 
+        // Mouse Events
         document.addEventListener('mousedown', function () {
             const currentTime = new Date().getTime();
             const tapLength = currentTime - lastTapTime;
 
             if (tapLength < tapDelay && tapLength > 0) {
-                if (gameRunning && player && player.jumping) {
-                    player.jump(true);
-                }
+                handleGameInput(true);
             } else {
-                if (gameRunning && player) {
-                    player.jump();
-                }
+                handleGameInput(false);
             }
             lastTapTime = currentTime;
         });
 
-        // Funkturm-Kugel Touch-Handler
+        // Funkturm-Kugel Touch-Handler - verbessert für Mobile
         let helicopterActive = false;
         
-        canvas.addEventListener('touchstart', function(e) {
-            if (!gameRunning || !citySkyline) return;
+        function handleHelicopterInput(start, x, y) {
+            if (!gameRunning || !citySkyline || !player) return;
             
+            const sphere = citySkyline.sphereHitbox;
+            if (!sphere) return;
+            
+            const dist = Math.sqrt((x - sphere.x) ** 2 + (y - sphere.y) ** 2);
+            
+            if (dist < sphere.radius * 1.5) { // Vergrößerte Hitbox für Mobile
+                if (start && !helicopterActive) {
+                    helicopterActive = true;
+                    player.helicopterMode = true;
+                    playAudio(helicopterSound);
+                } else if (!start && helicopterActive) {
+                    helicopterActive = false;
+                    player.helicopterMode = false;
+                    helicopterSound.pause();
+                    helicopterSound.currentTime = 0;
+                }
+                return true;
+            }
+            return false;
+        }
+        
+        // Touch Events für Helicopter
+        canvas.addEventListener('touchstart', function(e) {
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
             
-            const sphere = citySkyline.sphereHitbox;
-            const dist = Math.sqrt((x - sphere.x) ** 2 + (y - sphere.y) ** 2);
-            
-            if (dist < sphere.radius) {
+            if (handleHelicopterInput(true, x, y)) {
                 e.preventDefault();
-                helicopterActive = true;
-                player.helicopterMode = true;
-                helicopterSound.play().catch(e => {});
             }
-        });
+        }, { passive: false });
         
         canvas.addEventListener('touchend', function(e) {
             if (helicopterActive) {
                 e.preventDefault();
-                helicopterActive = false;
-                player.helicopterMode = false;
-                helicopterSound.pause();
-                helicopterSound.currentTime = 0;
+                handleHelicopterInput(false, 0, 0);
             }
-        });
+        }, { passive: false });
         
+        canvas.addEventListener('touchmove', function(e) {
+            if (helicopterActive) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // Mouse Events für Helicopter
         canvas.addEventListener('mousedown', function(e) {
-            if (!gameRunning || !citySkyline) return;
-            
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             
-            const sphere = citySkyline.sphereHitbox;
-            const dist = Math.sqrt((x - sphere.x) ** 2 + (y - sphere.y) ** 2);
-            
-            if (dist < sphere.radius) {
-                helicopterActive = true;
-                player.helicopterMode = true;
-                helicopterSound.play().catch(e => {});
-            }
+            handleHelicopterInput(true, x, y);
         });
         
         canvas.addEventListener('mouseup', function() {
             if (helicopterActive) {
-                helicopterActive = false;
-                player.helicopterMode = false;
-                helicopterSound.pause();
-                helicopterSound.currentTime = 0;
+                handleHelicopterInput(false, 0, 0);
             }
         });
+
+        // Verhindere Kontextmenü auf Mobile
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Initialisiere Audio beim ersten Tap auf die Seite
+        document.addEventListener('touchstart', function() {
+            initAudio();
+        }, { once: true });
+
+        document.addEventListener('mousedown', function() {
+            initAudio();
+        }, { once: true });
     </script>
 </body>
 
