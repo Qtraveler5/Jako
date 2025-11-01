@@ -742,7 +742,6 @@
         function showFireworks() {
             gameRunning = false;
             bgMusic.pause();
-            fireworkSound.pause();
             fireworkSound.currentTime = 0;
             fireworkSound.play().catch(e => console.log("Feuerwerk-Audio konnte nicht gestartet werden:", e));
             gameContainer.style.display = 'none';
@@ -846,7 +845,7 @@
             fireworksContainer.style.display = 'none';
             fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
             fireworksParticles = [];
-            fireworkSound.currentTime = 0;
+            fireworkSound.pause();
             
             startGame();
             bgMusic.play().catch(e => console.log("Musik konnte nicht gestartet werden:", e));
