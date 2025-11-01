@@ -310,21 +310,15 @@
                     ctx.translate(this.x + this.width / 2, this.y + 5);
                     ctx.rotate(this.propellerAngle);
                     
-                    // 2 Flügel in grün, schräge Perspektive
-                    ctx.strokeStyle = this.color; // Gleiche Farbe wie Männchen (#50fa7b)
+                    // Rotorblätter in Seitenansicht (25 Grad)
+                    ctx.strokeStyle = this.color;
                     ctx.lineWidth = 3;
                     ctx.lineCap = 'round';
                     
-                    // Erster Flügel (schräg)
+                    // Hauptrotorblatt (in Seitenansicht)
                     ctx.beginPath();
-                    ctx.moveTo(-25, -3);
-                    ctx.lineTo(25, 3);
-                    ctx.stroke();
-                    
-                    // Zweiter Flügel (schräg, gegenüber)
-                    ctx.beginPath();
-                    ctx.moveTo(-3, -25);
-                    ctx.lineTo(3, 25);
+                    ctx.moveTo(-25, 0);
+                    ctx.lineTo(25, 0);
                     ctx.stroke();
                     
                     // Kleiner Punkt in der Mitte (Achse)
@@ -342,6 +336,22 @@
                 ctx.beginPath();
                 ctx.arc(this.x + this.width / 2, this.y + 15, 15, 0, Math.PI * 2);
                 ctx.stroke();
+
+                // Großer Smiley im Helicopter-Modus
+                if (this.helicopterMode) {
+                    // Augen
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width / 2 - 5, this.y + 10, 3, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width / 2 + 5, this.y + 10, 3, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Mund (lächelnd)
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width / 2, this.y + 18, 8, 0.1 * Math.PI, 0.9 * Math.PI);
+                    ctx.stroke();
+                }
 
                 // Körper
                 ctx.beginPath();
@@ -792,6 +802,9 @@
                     }
 
                     if (score >= WINNING_SCORE) {
+                        // Stoppe Helicopter-Sound vor dem Start des Feuerwerks
+                        helicopterSound.pause();
+                        helicopterSound.currentTime = 0;
                         showFireworks();
                         return;
                     }
@@ -838,6 +851,8 @@
         function gameOver() {
             gameRunning = false;
             bgMusic.pause();
+            helicopterSound.pause();
+            helicopterSound.currentTime = 0;
 
             failSound.currentTime = 0;
             failSound.play().catch(e => {
@@ -971,6 +986,8 @@
             fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
             fireworksParticles = [];
             fireworkSound.pause();
+            helicopterSound.pause();
+            helicopterSound.currentTime = 0;
             
             startGame();
             bgMusic.play().catch(e => console.log("Musik konnte nicht gestartet werden:", e));
