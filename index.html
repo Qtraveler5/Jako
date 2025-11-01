@@ -162,6 +162,7 @@
     <audio id="bgMusic" loop src="happy_birthday.mp3"></audio>
     <audio id="jumpSound" src="sproing.m4a"></audio>
     <audio id="fireworkSound" src="fireworkSound.mp3"></audio>
+    <audio id="failSound" src="fail.mp3" preload="auto"></audio>
     
     <div id="birthday-message">
         <h1 class="retro-title">JAKO-RUN</h1>
@@ -191,7 +192,8 @@
         const bgMusic = document.getElementById('bgMusic');
         const jumpSound = document.getElementById('jumpSound');
         const fireworkSound = document.getElementById('fireworkSound');
-
+        const failSound = document.getElementById('failSound');
+        
         let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
         let gameStarted = false;
         const gravity = 0.5;
@@ -718,6 +720,10 @@
             gameRunning = false;
             bgMusic.pause();
 
+            failSound.currentTime = 0;
+            failSound.play().catch(e => {
+                console.log("Fail sound error:", e);
+            });
             ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
