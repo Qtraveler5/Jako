@@ -256,16 +256,32 @@
                 this.canAirJump = true;
                 this.helicopterMode = false;
                 this.propellerAngle = 0;
+                
+                // NEUE VARIABLEN FÜR NATÜRLICHE BEWEGUNG
+                this.helicopterBobPhase = 0; // Phase der Auf-ABwärtsbewegung
+                this.helicopterBobSpeed = 0.05; // Geschwindigkeit der Bewegung
+                this.helicopterBobAmount = 8; // Stärke der Bewegung (Pixel)
+                this.targetHelicopterY = canvas.height / 2 - 50; // Zielhöhe in der Mitte
             }
 
             update() {
                 // Helicopter-Modus
                 if (this.helicopterMode) {
-                    this.y -= 3; // Schwebt nach oben
-                    this.propellerAngle += 0.5; // Propeller drehen
-                    if (this.y < canvas.height / 2 - 50) this.y = canvas.height / 2 - 50; // Mittige Höhe
+                    // Sanfte Bewegung zur Zielhöhe
+                    if (Math.abs(this.y - this.targetHelicopterY) > 1) {
+                        this.y += (this.targetHelicopterY - this.y) * 0.1;
+                    }
+                    
+                    // Natürliche Auf-ABwärtsbewegung
+                    this.helicopterBobPhase += this.helicopterBobSpeed;
+                    let bobOffset = Math.sin(this.helicopterBobPhase) * this.helicopterBobAmount;
+                    this.y += bobOffset;
+                    
+                    // Propeller drehen
+                    this.propellerAngle += 0.5;
+                    
                 } else {
-                    // Normaler Modus
+                    // Normaler Modus (bestehender Code)
                     this.velocityY += gravity;
                     this.y += this.velocityY;
 
