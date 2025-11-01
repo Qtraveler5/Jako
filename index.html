@@ -263,7 +263,7 @@
                 if (this.helicopterMode) {
                     this.y -= 3; // Schwebt nach oben
                     this.propellerAngle += 0.5; // Propeller drehen
-                    if (this.y < 100) this.y = 100; // Nicht zu hoch
+                    if (this.y < canvas.height / 2 - 50) this.y = canvas.height / 2 - 50; // Mittige Höhe
                 } else {
                     // Normaler Modus
                     this.velocityY += gravity;
@@ -408,15 +408,13 @@
                     });
                 }
                 
-                // Funkturm (Berliner TV-Turm Stil)
+                // Funkturm (Berliner TV-Turm Stil) - näher am Rand, 20% größer
                 this.tower = {
-                    x: canvas.width - 150,
-                    baseWidth: 40,
-                    baseHeight: 100,
-                    shaftWidth: 15,
-                    shaftHeight: 200,
-                    sphereRadius: 25,
-                    antennaHeight: 80,
+                    x: canvas.width - 50, // Näher am rechten Rand
+                    shaftWidth: 12,
+                    shaftHeight: 160,
+                    sphereRadius: 20,
+                    antennaHeight: 64,
                     color: '#888888'
                 };
             }
@@ -448,16 +446,11 @@
                 // Zeichne Funkturm
                 const t = this.tower;
                 const groundY = canvas.height - 50;
-                const baseY = groundY - t.baseHeight;
-                const shaftY = baseY - t.shaftHeight;
+                const shaftY = groundY - t.shaftHeight;
                 const sphereY = shaftY - t.sphereRadius;
                 const antennaY = sphereY - t.sphereRadius - t.antennaHeight;
                 
-                // Basis (breites Fundament) - nur obere Hälfte sichtbar
-                ctx.fillStyle = t.color;
-                ctx.fillRect(t.x - t.baseWidth/2, baseY, t.baseWidth, t.baseHeight * 0.3);
-                
-                // Schaft (dünner Turm)
+                // Schaft (dünner Turm) - KEIN Fundament mehr
                 ctx.fillStyle = '#999999';
                 ctx.fillRect(t.x - t.shaftWidth/2, shaftY, t.shaftWidth, t.shaftHeight);
                 
@@ -470,12 +463,12 @@
                 // Glanz auf Kugel
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                 ctx.beginPath();
-                ctx.arc(t.x - 8, sphereY - 8, 10, 0, Math.PI * 2);
+                ctx.arc(t.x - 5, sphereY - 5, 7, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Antenne oben
                 ctx.strokeStyle = '#666666';
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(t.x, sphereY - t.sphereRadius);
                 ctx.lineTo(t.x, antennaY);
@@ -484,10 +477,10 @@
                 // Rote Warnlichter auf Antenne
                 ctx.fillStyle = '#ff0000';
                 ctx.beginPath();
-                ctx.arc(t.x, antennaY + 20, 4, 0, Math.PI * 2);
+                ctx.arc(t.x, antennaY + 13, 3, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.beginPath();
-                ctx.arc(t.x, antennaY + 50, 4, 0, Math.PI * 2);
+                ctx.arc(t.x, antennaY + 33, 3, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Speichere Kugel-Position für Klick-Erkennung
