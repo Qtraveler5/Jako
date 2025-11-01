@@ -5,9 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JAKO-RUN</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Balsamiq+Sans:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Balsamiq+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -47,8 +45,7 @@
             font-family: 'Press Start 2P', monospace;
             font-size: 4rem;
             font-weight: normal;
-            color: #00ff00;
-            /* GRÜN */
+            color: #00ff00; /* GRÜN */
             text-shadow:
                 1px 1px 0 #003300,
                 2px 2px 0 #003300,
@@ -122,20 +119,10 @@
         }
 
         @keyframes flicker {
-
-            0%,
-            18%,
-            22%,
-            25%,
-            53%,
-            57%,
-            100% {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
                 opacity: 1;
             }
-
-            20%,
-            24%,
-            55% {
+            20%, 24%, 55% {
                 opacity: 0.7;
             }
         }
@@ -144,11 +131,9 @@
             0% {
                 transform: scale(1);
             }
-
             50% {
                 transform: scale(1.05);
             }
-
             100% {
                 transform: scale(1);
             }
@@ -159,16 +144,13 @@
                 font-family: 'Roboto', sans-serif;
                 font-size: 2.4rem;
             }
-
             #start-button {
                 font-size: 1.2rem;
                 padding: 15px 30px;
             }
-
             #instructions {
                 font-size: 1rem;
             }
-
             #level-display {
                 font-size: 1.2rem;
             }
@@ -182,7 +164,7 @@
     <audio id="fireworkSound" src="fireworkSound.mp3"></audio>
     <audio id="failSound" src="fail.mp3" preload="auto"></audio>
     <audio id="helicopterSound" loop src="helicopter1.mp3"></audio>
-
+    
     <div id="birthday-message">
         <h1 class="retro-title">JAKO-RUN</h1>
         <div id="start-button">KLICK ZUM STARTEN!</div>
@@ -213,7 +195,7 @@
         const fireworkSound = document.getElementById('fireworkSound');
         const failSound = document.getElementById('failSound');
         const helicopterSound = document.getElementById('helicopterSound');
-
+        
         let player, obstacles, gameSpeed, score, gameRunning, level, bloodSplatterParticles, clouds, bannerPlane, citySkyline;
         let gameStarted = false;
         const gravity = 0.5;
@@ -241,11 +223,11 @@
         function handleStartClick(e) {
             if (e) e.preventDefault();
             console.log('Start button clicked!');
-
+            
             if (!gameStarted) {
                 gameStarted = true;
                 birthdayMessage.style.opacity = '0';
-
+                
                 setTimeout(() => {
                     birthdayMessage.style.display = 'none';
                     gameContainer.style.display = 'block';
@@ -309,12 +291,12 @@
                     this.velocityY = jumpForce;
                     this.jumping = true;
                     jumpSound.currentTime = 0;
-                    jumpSound.play().catch(e => { });
+                    jumpSound.play().catch(e => {});
                 } else if (this.jumping && this.canAirJump && isAirJump) {
                     this.velocityY = airJumpForce;
                     this.canAirJump = false;
                     jumpSound.currentTime = 0;
-                    jumpSound.play().catch(e => { });
+                    jumpSound.play().catch(e => {});
                 }
             }
 
@@ -326,31 +308,31 @@
                 if (this.helicopterMode) {
                     ctx.save();
                     ctx.translate(this.x + this.width / 2, this.y + 5);
-
+    
                     // Hauptrotation des Propellers
                     ctx.rotate(this.propellerAngle);
-
+    
                     // Seitenansicht 30 Grad - Ellipsen statt Linien für 3D-Effekt
                     ctx.strokeStyle = this.color; // Gleiche Farbe wie Männchen (#50fa7b)
                     ctx.lineWidth = 3;
                     ctx.lineCap = 'round';
-
+    
                     // Propellerblatt 1 (vorne) - als schmale Ellipse
                     ctx.beginPath();
                     ctx.ellipse(0, 0, 22, 3, 0, 0, Math.PI * 2); // Horizontal, dünn
                     ctx.stroke();
-
+    
                     // Propellerblatt 2 (hinten) - als noch schmalere Ellipse (Perspektive)
                     ctx.beginPath();
                     ctx.ellipse(0, 0, 22, 1.5, Math.PI / 2, 0, Math.PI * 2); // Vertikal, noch dünner
                     ctx.stroke();
-
+    
                     // Zentrale Achse
                     ctx.fillStyle = this.color;
                     ctx.beginPath();
                     ctx.arc(0, 0, 3, 0, Math.PI * 2);
                     ctx.fill();
-
+    
                     ctx.restore();
                 }
 
@@ -363,7 +345,7 @@
 
                 // Großer Smiley im Helicopter-Modus
                 if (this.helicopterMode) {
-
+                    
                     // Mund (lächelnd)
                     ctx.beginPath();
                     ctx.arc(this.x + this.width / 2, this.y + 18, 8, 0.1 * Math.PI, 0.9 * Math.PI);
@@ -434,7 +416,7 @@
                         windows
                     });
                 }
-
+                
                 // Funkturm (Berliner TV-Turm Stil) - näher am Rand, 20% größer
                 this.tower = {
                     x: canvas.width - 50, // Näher am rechten Rand
@@ -468,7 +450,7 @@
                     }
                 }
             }
-
+            
             drawTower() {
                 // Zeichne Funkturm
                 const t = this.tower;
@@ -476,23 +458,23 @@
                 const shaftY = groundY - t.shaftHeight;
                 const sphereY = shaftY - t.sphereRadius;
                 const antennaY = sphereY - t.sphereRadius - t.antennaHeight;
-
+                
                 // Schaft (dünner Turm) - KEIN Fundament mehr
                 ctx.fillStyle = '#999999';
-                ctx.fillRect(t.x - t.shaftWidth / 2, shaftY, t.shaftWidth, t.shaftHeight);
-
+                ctx.fillRect(t.x - t.shaftWidth/2, shaftY, t.shaftWidth, t.shaftHeight);
+                
                 // Kugel (Alexanderplatz-Stil)
                 ctx.fillStyle = '#c0c0c0';
                 ctx.beginPath();
                 ctx.arc(t.x, sphereY, t.sphereRadius, 0, Math.PI * 2);
                 ctx.fill();
-
+                
                 // Glanz auf Kugel
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                 ctx.beginPath();
                 ctx.arc(t.x - 5, sphereY - 5, 7, 0, Math.PI * 2);
                 ctx.fill();
-
+                
                 // Antenne oben
                 ctx.strokeStyle = '#666666';
                 ctx.lineWidth = 2;
@@ -500,7 +482,7 @@
                 ctx.moveTo(t.x, sphereY - t.sphereRadius);
                 ctx.lineTo(t.x, antennaY);
                 ctx.stroke();
-
+                
                 // Rote Warnlichter auf Antenne
                 ctx.fillStyle = '#ff0000';
                 ctx.beginPath();
@@ -509,7 +491,7 @@
                 ctx.beginPath();
                 ctx.arc(t.x, antennaY + 33, 3, 0, Math.PI * 2);
                 ctx.fill();
-
+                
                 // Speichere Kugel-Position für Klick-Erkennung
                 this.sphereHitbox = {
                     x: t.x,
@@ -517,7 +499,7 @@
                     radius: t.sphereRadius
                 };
             }
-
+            
             draw() {
                 this.drawTower();
                 this.drawBuildings();
@@ -895,12 +877,21 @@
 
         let floatingPlayer;
         let fireworksParticles = [];
-
+        
         function showFireworks() {
             gameRunning = false;
             bgMusic.pause();
-            fireworkSound.currentTime = 0;
-            fireworkSound.play().catch(e => console.log("Feuerwerk-Audio konnte nicht gestartet werden:", e));
+            
+            // STOPPE HELICOPTER-SOUND EXPLIZIT
+            helicopterSound.pause();
+            helicopterSound.currentTime = 0;
+            
+            // Warte kurz bevor Feuerwerk-Sound startet
+            setTimeout(() => {
+                fireworkSound.currentTime = 0;
+                fireworkSound.play().catch(e => console.log("Feuerwerk-Audio konnte nicht gestartet werden:", e));
+            }, 100);
+            
             gameContainer.style.display = 'none';
             fireworksContainer.style.display = 'block';
 
@@ -1005,7 +996,7 @@
             fireworkSound.pause();
             helicopterSound.pause();
             helicopterSound.currentTime = 0;
-
+            
             startGame();
             bgMusic.play().catch(e => console.log("Musik konnte nicht gestartet werden:", e));
         }
@@ -1049,27 +1040,27 @@
 
         // Funkturm-Kugel Touch-Handler
         let helicopterActive = false;
-
-        canvas.addEventListener('touchstart', function (e) {
+        
+        canvas.addEventListener('touchstart', function(e) {
             if (!gameRunning || !citySkyline) return;
-
+            
             const rect = canvas.getBoundingClientRect();
             const touch = e.touches[0];
             const x = touch.clientX - rect.left;
             const y = touch.clientY - rect.top;
-
+            
             const sphere = citySkyline.sphereHitbox;
             const dist = Math.sqrt((x - sphere.x) ** 2 + (y - sphere.y) ** 2);
-
+            
             if (dist < sphere.radius) {
                 e.preventDefault();
                 helicopterActive = true;
                 player.helicopterMode = true;
-                helicopterSound.play().catch(e => { });
+                helicopterSound.play().catch(e => {});
             }
         });
-
-        canvas.addEventListener('touchend', function (e) {
+        
+        canvas.addEventListener('touchend', function(e) {
             if (helicopterActive) {
                 e.preventDefault();
                 helicopterActive = false;
@@ -1078,25 +1069,25 @@
                 helicopterSound.currentTime = 0;
             }
         });
-
-        canvas.addEventListener('mousedown', function (e) {
+        
+        canvas.addEventListener('mousedown', function(e) {
             if (!gameRunning || !citySkyline) return;
-
+            
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-
+            
             const sphere = citySkyline.sphereHitbox;
             const dist = Math.sqrt((x - sphere.x) ** 2 + (y - sphere.y) ** 2);
-
+            
             if (dist < sphere.radius) {
                 helicopterActive = true;
                 player.helicopterMode = true;
-                helicopterSound.play().catch(e => { });
+                helicopterSound.play().catch(e => {});
             }
         });
-
-        canvas.addEventListener('mouseup', function () {
+        
+        canvas.addEventListener('mouseup', function() {
             if (helicopterActive) {
                 helicopterActive = false;
                 player.helicopterMode = false;
