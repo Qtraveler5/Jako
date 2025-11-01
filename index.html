@@ -305,27 +305,36 @@
                 ctx.lineWidth = 3;
 
                 // Propeller (nur im Helicopter-Modus)
-                // Propeller (nur im Helicopter-Modus) - mit leichter Aufsicht (20 Grad)
                 if (this.helicopterMode) {
-                ctx.save();
-                // Position über dem Kopf mit leichter Aufsicht
-                ctx.translate(this.x + this.width / 2, this.y - 5);
+                    ctx.save();
+                    ctx.translate(this.x + this.width / 2, this.y + 5);
     
-                // Leichte Drehung für Aufsicht-Perspektive (20 Grad)
-                ctx.rotate(20 * Math.PI / 180);
+                    // Hauptrotation des Propellers
+                    ctx.rotate(this.propellerAngle);
     
-                // Rotorblätter in Aufsicht
-                ctx.strokeStyle = this.color;
-                ctx.lineWidth = 3;
-                ctx.lineCap = 'round';
+                    // Seitenansicht 30 Grad - Ellipsen statt Linien für 3D-Effekt
+                    ctx.strokeStyle = this.color; // Gleiche Farbe wie Männchen (#50fa7b)
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = 'round';
     
-                // Hauptrotorblatt (horizontal)
-                ctx.beginPath();
-                ctx.moveTo(-25, 0);
-                ctx.lineTo(25, 0);
-                ctx.stroke();
-                ctx.restore();
-            }
+                    // Propellerblatt 1 (vorne) - als schmale Ellipse
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 22, 3, 0, 0, Math.PI * 2); // Horizontal, dünn
+                    ctx.stroke();
+    
+                    // Propellerblatt 2 (hinten) - als noch schmalere Ellipse (Perspektive)
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, 22, 1.5, Math.PI / 2, 0, Math.PI * 2); // Vertikal, noch dünner
+                    ctx.stroke();
+    
+                    // Zentrale Achse
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                    ctx.fill();
+    
+                    ctx.restore();
+                }
 
                 // Kopf
                 ctx.strokeStyle = this.color;
@@ -339,7 +348,7 @@
                     
                     // Mund (lächelnd)
                     ctx.beginPath();
-                    ctx.arc(this.x + this.width / 2 + 8, this.y + 15, 10, 0.25 * Math.PI, 1.75 * Math.PI);
+                    ctx.arc(this.x + this.width / 2, this.y + 18, 8, 0.1 * Math.PI, 0.9 * Math.PI);
                     ctx.stroke();
                 }
 
