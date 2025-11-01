@@ -454,25 +454,39 @@
                     // Hauptrotation des Propellers
                     ctx.rotate(this.propellerAngle);
     
-                    // Seitenansicht 30 Grad - Ellipsen statt Linien für 3D-Effekt
+                    // Seitenansicht - 2 Rotorblätter als Ellipse (perspektivisch verkürzt)
                     ctx.strokeStyle = this.color;
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 2.5;
                     ctx.lineCap = 'round';
     
-                    // Propellerblatt 1 (vorne) - als schmale Ellipse
+                    // Hauptrotorblatt (horizontal, voll sichtbar)
                     ctx.beginPath();
-                    ctx.ellipse(0, 0, 22, 3, 0, 0, Math.PI * 2);
+                    ctx.moveTo(-25, 0);
+                    ctx.lineTo(25, 0);
                     ctx.stroke();
-    
-                    // Propellerblatt 2 (hinten) - als noch schmalere Ellipse (Perspektive)
+                    
+                    // Perspektivisch verkürztes Blatt (senkrecht, nur als kurze Linie sichtbar)
+                    ctx.save();
+                    ctx.rotate(Math.PI / 2);
+                    ctx.lineWidth = 1.5;
+                    ctx.globalAlpha = 0.6; // Leicht transparent für Tiefeneffekt
                     ctx.beginPath();
-                    ctx.ellipse(0, 0, 22, 1.5, Math.PI / 2, 0, Math.PI * 2);
+                    ctx.moveTo(-4, 0);
+                    ctx.lineTo(4, 0);
                     ctx.stroke();
+                    ctx.restore();
     
-                    // Zentrale Achse
+                    // Zentrale Achse/Nabe
+                    ctx.globalAlpha = 1;
                     ctx.fillStyle = this.color;
                     ctx.beginPath();
-                    ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                    ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Kleine Highlights auf der Nabe
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(-1, -1, 1.5, 0, Math.PI * 2);
                     ctx.fill();
     
                     ctx.restore();
