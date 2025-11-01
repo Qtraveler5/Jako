@@ -304,30 +304,30 @@
                 ctx.strokeStyle = this.color;
                 ctx.lineWidth = 3;
 
-                // Propeller (nur im Helicopter-Modus)
+                // Propeller (nur im Helicopter-Modus) - NEUE SEITENANSICHT
                 if (this.helicopterMode) {
                     ctx.save();
                     ctx.translate(this.x + this.width / 2, this.y + 5);
+                    
+                    // Hauptrotation des Propellers
                     ctx.rotate(this.propellerAngle);
                     
-                    // 2 Flügel in grün, schräge Perspektive
+                    // Seitenansicht 30 Grad - Ellipsen statt Linien für 3D-Effekt
                     ctx.strokeStyle = this.color; // Gleiche Farbe wie Männchen (#50fa7b)
                     ctx.lineWidth = 3;
                     ctx.lineCap = 'round';
                     
-                    // Erster Flügel (schräg)
+                    // Propellerblatt 1 (vorne) - als schmale Ellipse
                     ctx.beginPath();
-                    ctx.moveTo(-25, -3);
-                    ctx.lineTo(25, 3);
+                    ctx.ellipse(0, 0, 22, 3, 0, 0, Math.PI * 2); // Horizontal, dünn
                     ctx.stroke();
                     
-                    // Zweiter Flügel (schräg, gegenüber)
+                    // Propellerblatt 2 (hinten) - als noch schmalere Ellipse (Perspektive)
                     ctx.beginPath();
-                    ctx.moveTo(-3, -25);
-                    ctx.lineTo(3, 25);
+                    ctx.ellipse(0, 0, 22, 1.5, Math.PI / 2, 0, Math.PI * 2); // Vertikal, noch dünner
                     ctx.stroke();
                     
-                    // Kleiner Punkt in der Mitte (Achse)
+                    // Zentrale Achse
                     ctx.fillStyle = this.color;
                     ctx.beginPath();
                     ctx.arc(0, 0, 3, 0, Math.PI * 2);
@@ -408,15 +408,13 @@
                     });
                 }
                 
-                // Funkturm (Berliner TV-Turm Stil)
+                // Funkturm (Berliner TV-Turm Stil) - 1/3 kleiner, weiter rechts
                 this.tower = {
-                    x: canvas.width - 150,
-                    baseWidth: 40,
-                    baseHeight: 100,
-                    shaftWidth: 15,
-                    shaftHeight: 200,
-                    sphereRadius: 25,
-                    antennaHeight: 80,
+                    x: canvas.width - 80, // Näher am rechten Rand
+                    shaftWidth: 10,
+                    shaftHeight: 133, // 200 / 1.5 = ca. 133
+                    sphereRadius: 17, // 25 / 1.5 = ca. 17
+                    antennaHeight: 53, // 80 / 1.5 = ca. 53
                     color: '#888888'
                 };
             }
@@ -448,16 +446,11 @@
                 // Zeichne Funkturm
                 const t = this.tower;
                 const groundY = canvas.height - 50;
-                const baseY = groundY - t.baseHeight;
-                const shaftY = baseY - t.shaftHeight;
+                const shaftY = groundY - t.shaftHeight;
                 const sphereY = shaftY - t.sphereRadius;
                 const antennaY = sphereY - t.sphereRadius - t.antennaHeight;
                 
-                // Basis (breites Fundament) - nur obere Hälfte sichtbar
-                ctx.fillStyle = t.color;
-                ctx.fillRect(t.x - t.baseWidth/2, baseY, t.baseWidth, t.baseHeight * 0.3);
-                
-                // Schaft (dünner Turm)
+                // Schaft (dünner Turm) - KEIN Fundament mehr
                 ctx.fillStyle = '#999999';
                 ctx.fillRect(t.x - t.shaftWidth/2, shaftY, t.shaftWidth, t.shaftHeight);
                 
@@ -470,12 +463,12 @@
                 // Glanz auf Kugel
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                 ctx.beginPath();
-                ctx.arc(t.x - 8, sphereY - 8, 10, 0, Math.PI * 2);
+                ctx.arc(t.x - 5, sphereY - 5, 7, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Antenne oben
                 ctx.strokeStyle = '#666666';
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(t.x, sphereY - t.sphereRadius);
                 ctx.lineTo(t.x, antennaY);
@@ -484,10 +477,10 @@
                 // Rote Warnlichter auf Antenne
                 ctx.fillStyle = '#ff0000';
                 ctx.beginPath();
-                ctx.arc(t.x, antennaY + 20, 4, 0, Math.PI * 2);
+                ctx.arc(t.x, antennaY + 13, 3, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.beginPath();
-                ctx.arc(t.x, antennaY + 50, 4, 0, Math.PI * 2);
+                ctx.arc(t.x, antennaY + 33, 3, 0, Math.PI * 2);
                 ctx.fill();
                 
                 // Speichere Kugel-Position für Klick-Erkennung
