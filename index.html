@@ -1046,7 +1046,7 @@
             let fireworksParticles = [];
             let floatingPlayer = new Player();
             floatingPlayer.x = fireworksCanvas.width / 2 - floatingPlayer.width / 2;
-            floatingPlayer.y = fireworksCanvas.height - 100; // Unten starten
+            floatingPlayer.y = fireworksCanvas.height 2 + 50; 
             floatingPlayer.velocityY = 0; // Steht still
             floatingPlayer.jumping = false;
             
@@ -1055,7 +1055,7 @@
             // Erstelle Button
             const fireworkButton = document.createElement('div');
             fireworkButton.id = 'firework-button';
-            fireworkButton.textContent = 'FEUERWERK 🎆';
+            fireworkButton.textContent = 'FEUERWERK ';
             fireworksContainer.appendChild(fireworkButton);
 
             // Button Click Handler
