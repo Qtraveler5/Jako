@@ -886,10 +886,11 @@
             helicopterSound.pause();
             helicopterSound.currentTime = 0;
             
-            // Spiele Feuerwerk-Sound sofort ab
-            fireworkSound.currentTime = 0;
-            fireworkSound.volume = 1.0;
-            fireworkSound.play().catch(e => console.log("Feuerwerk-Audio konnte nicht gestartet werden:", e));
+            // Warte kurz bevor Feuerwerk-Sound startet
+            setTimeout(() => {
+                fireworkSound.currentTime = 0;
+                fireworkSound.play().catch(e => console.log("Feuerwerk-Audio konnte nicht gestartet werden:", e));
+            }, 100);
             
             gameContainer.style.display = 'none';
             fireworksContainer.style.display = 'block';
@@ -985,7 +986,6 @@
                 document.addEventListener('click', restartGame, { once: true });
                 document.addEventListener('touchstart', restartGame, { once: true });
             }, 5000);
-        }
         }
 
         function restartGame() {
